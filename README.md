@@ -142,18 +142,6 @@ Test in a controlled VM environment to avoid risks.
 
 Full test report: [docs/test_report.md](docs/test_report.md).
 
-## Screenshots
-
-### Compilation Process
-![Compilation](https://via.placeholder.com/600x300?text=Compilation+Screenshot)  
-*Automated build with run_project.bat.*
-
-### Execution in VM
-![Execution](https://via.placeholder.com/600x300?text=Execution+Screenshot)  
-*Payload injection without Sysmon detection.*
-
-*(Replace placeholders with actual images from your tests.)*
-
 ## Contributing
 
 Contributions are welcome! This is an educational project.
@@ -181,3 +169,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with passion for ethical cybersecurity education. Star this repo if you find it useful!** 🚀
+
