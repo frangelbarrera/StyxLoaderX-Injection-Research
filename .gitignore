@@ -1,0 +1,41 @@
+# Compiled objects
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# Executables
+*.exe
+*.dll
+*.bin
+!shellcode/shellcode.asm
+
+# Build output
+Debug/
+Release/
+x64/
+Win32/
+.vs/
+out/
+
+# Dependencies downloaded by run_project.bat
+openssl-*/
+upx-*/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# NASM output
+*.lst

@@ -22,7 +22,32 @@ This framework is ideal for penetration testers, security researchers, and stude
 **Repository URL:** [https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
 **Documentation:** [Full Whitepaper](docs/Whitepaper.md) | [Test Report](docs/test_report.md)
 
-**Disclaimer:** This project is for **educational and research purposes only**. Do not use in production systems or for malicious activities. Always comply with legal and ethical guidelines.
+---
+
+## ⚖️ Ethical Use Policy
+
+This framework documents offensive techniques that have legitimate defensive applications. Security professionals must understand attacker methodologies to build effective detections and protections.
+
+**Authorized use cases:**
+- Red team assessments with signed Rules of Engagement
+- EDR product testing and detection engineering
+- Academic research in Windows internals and malware analysis
+- Cybersecurity training in controlled lab environments
+
+**All testing must occur in isolated lab VMs.** See [docs/config_lab.md](docs/config_lab.md) for safe setup instructions.
+
+---
+
+> **⚠️ LEGAL NOTICE:** This project is provided strictly for **educational and authorized security research purposes only**. Unauthorized access to computer systems is a criminal offense in most jurisdictions.
+
+**By using this software you agree that you:**
+- ✅ Have explicit, written authorization before testing any system
+- ✅ Are conducting legitimate red team assessments or academic research
+- ✅ Will comply with all applicable laws (CFAA, Computer Misuse Act, Budapest Convention, etc.)
+- ❌ Will NOT use these techniques against systems without authorization
+- ❌ Will NOT use this for any illegal or malicious purpose
+
+**The authors assume no liability for misuse.** If you are unsure whether your use is authorized, it is not.
 
 ## Table of Contents
 - [Features](#features)
@@ -146,15 +171,16 @@ Full test report: [docs/test_report.md](docs/test_report.md).
 
 Contributions are welcome! This is an educational project.
 
-1. Fork the repo: [https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/fork](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/fork).
-2. Create a feature branch: `git checkout -b feature/new-evasion-technique`.
-3. Commit changes and submit a PR.
-4. Report issues: [Issues Page](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/issues).
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/new-technique`
+3. Ensure all new modules include documentation
+4. Submit a PR with a clear description of the technique and its defensive implications
 
-Guidelines:
-- Follow C++ best practices.
-- Add tests for new modules.
-- Update documentation.
+**Contribution guidelines:**
+- Follow C++ best practices
+- Document the defensive countermeasure for every offensive technique added
+- Test in isolated VMs only — never test against production systems
+- Update the relevant docs (Whitepaper, test_report) with your findings
 
 ## License
 
