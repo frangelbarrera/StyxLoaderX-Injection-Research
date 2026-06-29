@@ -6,6 +6,11 @@
 [![Evasion Rate](https://img.shields.io/badge/Evasion%20Rate-85%25-green)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
 [![GitHub Stars](https://img.shields.io/github/stars/frangelbarrera/StyxLoaderX-EDR-Evasion?style=social)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
 
+⚠️ ACADEMIC RESEARCH ONLY
+This code is published for educational purposes to help defenders 
+understand evasion techniques. Do not use for malicious purposes.
+Author is a defensive security engineer.
+
 ## Overview
 
 **StyxLoaderX** is a sophisticated, modular framework designed for advanced Endpoint Detection and Response (EDR) evasion on Windows x64 systems. This project demonstrates cutting-edge techniques in cybersecurity research, including dynamic syscall mapping, AES-256 encryption, process hollowing, and sandbox detection. With an **85% evasion rate** against tools like Sysmon, it showcases expertise in low-level Windows internals and anti-forensic methods.
