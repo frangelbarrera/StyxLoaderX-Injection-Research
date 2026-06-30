@@ -12,7 +12,7 @@ Author is a defensive security engineer.
 
 ## Overview
 
-**StyxLoaderX** is a sophisticated, modular framework designed for advanced Endpoint Detection and Response (EDR) evasion on Windows x64 systems. This project demonstrates cutting-edge techniques in cybersecurity research, including dynamic syscall mapping, AES-256 encryption, process hollowing, and sandbox detection. With an **85% evasion rate** against tools like Sysmon, it showcases expertise in low-level Windows internals and anti-forensic methods.
+**StyxLoaderX** is a modular research framework for studying Endpoint Detection and Response (EDR) evasion techniques on Windows x64 systems. This project documents techniques relevant to defensive analysis, including dynamic syscall mapping, AES-256 encryption, process hollowing, and sandbox detection. The goal is to help defenders understand attacker methodologies in order to build better detections.
 
 **Key Highlights:**
 - **Modular Architecture:** Easily extensible with interchangeable evasion modules.
@@ -73,11 +73,11 @@ This framework documents offensive techniques that have legitimate defensive app
 - **Binary Packing:** UPX compression reduces file size by ~50% and adds obfuscation layers.
 - **Sandbox Evasion:** Detects and aborts in virtualized or analysis environments (e.g., VMs, sandboxes).
 
-### Advanced Metrics
-- **Evasion Effectiveness:** 85% success rate in bypassing Sysmon logs (improved from 66% with enhancements).
+### Research Metrics
+- **Tested Against:** Sysmon with high-telemetry configuration (see docs/test_report.md for methodology).
 - **Execution Speed:** Sub-5-second payload deployment.
 - **Compatibility:** Windows 10/11 x64; supports multiple injection modes.
-- **Modularity:** Plug-and-play modules for custom evasion strategies.
+- **Modularity:** Plug-and-play modules for testing different evasion strategies.
 
 ### Educational Value
 - Learn Windows API internals, memory manipulation, and red team tactics.
@@ -148,7 +148,7 @@ For detailed lab setup, see [docs/config_lab.md](docs/config_lab.md).
 |-----------|--------------------------------------|---------------|---------------------------|
 | Simple    | Basic CreateRemoteThread injection   | Low (detectable) | Testing basics            |
 | Direct    | Dynamic syscalls                     | High (~80%)    | Bypassing hooks           |
-| Hollow    | Process hollowing + AES              | Very High (~90%)| Advanced persistence      |
+| Hollow    | Process hollowing + AES              | High            | Detection engineering     |
 
 ### Customization
 - Modify `shellcode/shellcode.asm` for custom payloads.
@@ -165,9 +165,11 @@ Test in a controlled VM environment to avoid risks.
 - Check Event Viewer > Windows Logs > Application for Sysmon events (ID 8 for injections).
 
 ### Expected Results
-- **Success:** No logs in advanced modes; calc.exe opens without alerts.
-- **Metrics:** 85% evasion rate; <5s execution.
+- **Simple mode:** Sysmon Event ID 8 (CreateRemoteThread) should be logged.
+- **Direct/Hollow modes:** Test which telemetry gaps appear in your Sysmon config.
+- **Execution time:** <5s for payload deployment.
 - **Debugging:** Use x64dbg for process inspection.
+- **Detection engineering:** Use the gaps you find to build Sigma rules or tune Sysmon configs.
 
 Full test report: [docs/test_report.md](docs/test_report.md).
 
@@ -198,5 +200,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with passion for ethical cybersecurity education. Star this repo if you find it useful!** 🚀
+**Built for defensive cybersecurity research. See CONTRIBUTING.md for guidelines on adding detection artifacts alongside new techniques.**
 
