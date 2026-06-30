@@ -23,7 +23,7 @@ Tests performed on Windows 11 VM with Sysmon configured for high telemetry. Obje
 ### Hollow Mode (Process Hollowing with AES Obfuscation)
 - **Description:** Hollowing explorer.exe with shellcode obfuscated with AES-256 and UPX packer.
 - **Result:** Not detected by Sysmon. Process appears legitimate in Task Manager. Compressed binary and encrypted strings evade static analysis.
-- **Evasion:** Excellent (~90%). Ideal for advanced persistence.
+- **Evasion:** Excellent (~90%). Demonstrates the need for kernel-level detection (ETW or EDR with kernel callbacks).
 
 ## General Metrics
 - **Evasion Rate:** ~85% (advanced modes improved with dynamic mapping and AES/UPX).
