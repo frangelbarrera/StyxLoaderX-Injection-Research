@@ -1,15 +1,14 @@
+⚠️ ACADEMIC RESEARCH ONLY
+This code is published for educational purposes to help defenders 
+understand evasion techniques. Do not use for malicious purposes.
+Author is a defensive security engineer.
+
 # StyxLoaderX: Advanced EDR Evasion Framework
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![C++](https://img.shields.io/badge/C%2B%2B-11-blue)](https://isocpp.org/)
 [![Windows](https://img.shields.io/badge/Platform-Windows-blue)](https://www.microsoft.com/en-us/windows)
-[![Evasion Rate](https://img.shields.io/badge/Evasion%20Rate-85%25-green)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
 [![GitHub Stars](https://img.shields.io/github/stars/frangelbarrera/StyxLoaderX-EDR-Evasion?style=social)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
-
-⚠️ ACADEMIC RESEARCH ONLY
-This code is published for educational purposes to help defenders 
-understand evasion techniques. Do not use for malicious purposes.
-Author is a defensive security engineer.
 
 ## Overview
 
