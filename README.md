@@ -24,7 +24,7 @@ Author is a defensive security engineer.
 This framework is ideal for penetration testers, security researchers, and students exploring EDR bypass. It executes arbitrary payloads (e.g., opening calc.exe) while evading modern security solutions.
 
 **Repository URL:** [https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
-**Documentation:** [Full Whitepaper](docs/Whitepaper.md) | [Test Report](docs/test_report.md)
+**Documentation:** [Full Whitepaper](docs/Whitepaper.md) | [Test Report](docs/test_report.md) | [Defensive Detections](docs/detections/README.md)
 
 ---
 
