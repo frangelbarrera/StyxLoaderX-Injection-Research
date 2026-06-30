@@ -1,0 +1,38 @@
+yaml
+title: Process Hollowing via Suspended Process Creation
+id: 7e4c8a2d-3f5b-4e9a-8c1d-6b2e7f9a3d12
+status: experimental
+description: >
+    Detects process hollowing pattern: a suspended process is created,
+    its memory is unmapped and replaced, then the thread is resumed.
+    This matches the Hollow mode of StyxLoaderX and similar process hollowing toolkits.
+references:
+    - https://attack.mitre.org/techniques/T1055/012/
+    - https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/blob/main/modules/HollowInjector.cpp
+author: Frangel Barrera
+date: 2026/06/30
+modified: 2026/06/30
+tags:
+    - attack.t1055.012
+    - attack.t1055
+    - attack.defense_evasion
+    - attack.privilege_escalation
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_suspended:
+        CommandLine|contains:
+            - 'CREATE_SUSPENDED'
+    filter_legitimate:
+        Image:
+            - 'C:\\Windows\\System32\\svchost.exe'
+            - 'C:\\Windows\\System32\\smss.exe'
+            - 'C:\\Windows\\System32\\csrss.exe'
+            - 'C:\\Windows\\System32\\wininit.exe'
+    condition: selection_suspended and not filter_legitimate
+falsepositives:
+    - Legitimate process hollowing by antivirus engines
+    - .NET CLR runtime
+    - Debuggers attaching to suspended processes
+level: medium
