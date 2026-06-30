@@ -1,21 +1,21 @@
-# Investigación sobre Userland Hooking
+# Userland Hooking Research
 
-Este documento resume la investigación sobre cómo los EDR implementan userland hooks en Windows, basada en documentación y ejemplos de GitHub/repositorios como klezVirus/inceptor y referencias a "Bypassing Userland EDR Hooks".
+This document summarizes research on how EDRs implement userland hooks on Windows, based on documentation and examples from GitHub repositories such as klezVirus/inceptor and references to "Bypassing Userland EDR Hooks".
 
-## ¿Qué es Userland Hooking?
-Los EDR (Endpoint Detection and Response) inyectan una DLL en procesos objetivo (usando técnicas como APC o thread hijacking). Esta DLL modifica las primeras instrucciones de funciones clave en ntdll.dll y kernel32.dll (ej. NtWriteVirtualMemory, CreateRemoteThread) para insertar un "salto" (JMP) a su propio código de monitoreo. Esto permite interceptar llamadas a APIs de Windows y detectar comportamientos maliciosos como inyección de código.
+## What is Userland Hooking?
+EDRs (Endpoint Detection and Response) inject a DLL into target processes (using techniques such as APC or thread hijacking). This DLL modifies the first instructions of key functions in ntdll.dll and kernel32.dll (e.g., NtWriteVirtualMemory, CreateRemoteThread) to insert a "jump" (JMP) to its own monitoring code. This allows intercepting calls to Windows APIs and detecting malicious behaviors such as code injection.
 
-- **Mecanismo:** La DLL hookea funciones reemplazando los primeros bytes con un JMP a una función trampoline que registra la llamada y luego ejecuta el código original.
-- **Detección:** Los hooks están en la capa de API de usuario (userland), no en el kernel, lo que los hace vulnerables a evasión.
+- **Mechanism:** The hooked DLL replaces functions by patching the first bytes with a JMP to a trampoline function that logs the call and then executes the original code.
+- **Detection limitation:** Hooks live in the userland API layer, not in the kernel, which makes them vulnerable to evasion.
 
-## Cómo Evadirlo
-- **Syscalls Directos:** Llamar directamente al kernel (ntoskrnl.exe) usando syscalls (ej. NtAllocateVirtualMemory) en lugar de pasar por las APIs hookeadas. Los hooks solo afectan las funciones de ntdll.dll.
-- **Syscalls Indirectos:** Usar la pila para transiciones legítimas, complicando el análisis de llamadas.
-- **Herramientas para Investigación:** x64dbg para inspeccionar memoria y disassembly; Process Explorer para ver DLLs inyectadas.
+## How to Evade It
+- **Direct Syscalls:** Call the kernel directly (ntoskrnl.exe) using syscalls (e.g., NtAllocateVirtualMemory) instead of going through hooked APIs. Hooks only affect ntdll.dll exported functions.
+- **Indirect Syscalls:** Use the stack for legitimate transitions, complicating call analysis.
+- **Research Tools:** x64dbg for memory inspection and disassembly; Process Explorer to view injected DLLs.
 
-## Hallazgos Iniciales
-- En Windows 10/11 x64, syscalls usan el número de syscall (ej. 0x18 para NtAllocateVirtualMemory) obtenido dinámicamente.
-- Ejemplos en GitHub muestran cómo mapear syscalls y llamar con ASM inline.
-- Riesgo: Syscalls varían por build de Windows; usar tablas dinámicas.
+## Initial Findings
+- On Windows 10/11 x64, syscalls use a syscall number (e.g., 0x18 for NtAllocateVirtualMemory) obtained dynamically.
+- GitHub examples show how to map syscalls and call them with inline ASM.
+- Risk: Syscalls vary by Windows build; use dynamic tables.
 
-Próximo: Implementar módulo DirectSyscall.cpp basado en esto.
+Next: Implement DirectSyscall.cpp module based on this research.
