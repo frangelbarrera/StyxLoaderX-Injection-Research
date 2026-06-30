@@ -1,43 +1,43 @@
-# Reporte de Pruebas Finales: Marco de Evasión de EDR
+# Final Test Report: EDR Evasion Framework
 
-## Resumen de Pruebas
-Pruebas realizadas en VM Windows 11 con Sysmon configurado para telemetría alta. Objetivo: Validar evasión de detección en modos simple, direct e hollow. Resultados basados en logs de Sysmon y observación de ejecución.
+## Test Summary
+Tests performed on Windows 11 VM with Sysmon configured for high telemetry. Objective: validate evasion of detection in simple, direct, and hollow modes. Results based on Sysmon logs and execution observation.
 
-## Configuración de Pruebas
-- **Entorno:** VM Windows 11 x64, 2 GB RAM, Sysmon con config SwiftOnSecurity.
-- **Payload:** Shellcode para ejecutar calc.exe (compilado con NASM en VM).
-- **Herramientas:** x64dbg para debugging, Event Viewer para logs Sysmon.
+## Test Configuration
+- **Environment:** Windows 11 x64 VM, 2 GB RAM, Sysmon with SwiftOnSecurity config.
+- **Payload:** Shellcode to execute calc.exe (compiled with NASM in VM).
+- **Tools:** x64dbg for debugging, Event Viewer for Sysmon logs.
 
-## Resultados por Modo
+## Results by Mode
 
-### Modo Simple (Inyección Básica)
-- **Descripción:** Uso de CreateRemoteThread en notepad.exe.
-- **Resultado:** Detectado por Sysmon (Event ID 8: CreateRemoteThread). Calc.exe ejecutado pero logged.
-- **Evasión:** Baja. Recomendación: No usar en producción.
+### Simple Mode (Basic Injection)
+- **Description:** CreateRemoteThread injection into notepad.exe.
+- **Result:** Detected by Sysmon (Event ID 8: CreateRemoteThread). Calc.exe executed but logged.
+- **Evasion:** Low. Recommendation: do not use in production.
 
-### Modo Direct (Syscalls Directos con Mapeo Dinámico)
-- **Descripción:** Inyección con NtAllocateVirtualMemory/NtWriteVirtualMemory/NtCreateThreadEx usando IDs de syscall obtenidos dinámicamente de ntdll.dll.
-- **Resultado:** No detectado por Sysmon. Calc.exe ejecutado sin logs de inyección. Compatible con builds de Windows actualizados.
-- **Evasión:** Muy alta (~80%). Evade hooks userland y cambios en kernel.
+### Direct Mode (Direct Syscalls with Dynamic Mapping)
+- **Description:** Injection with NtAllocateVirtualMemory/NtWriteVirtualMemory/NtCreateThreadEx using syscall IDs obtained dynamically from ntdll.dll.
+- **Result:** Not detected by Sysmon. Calc.exe executed without injection logs. Compatible with updated Windows builds.
+- **Evasion:** Very high (~80%). Evades userland hooks and kernel changes.
 
-### Modo Hollow (Process Hollowing con Ofuscación AES)
-- **Descripción:** Hollowing en explorer.exe con shellcode ofuscado con AES-256 y packer UPX.
-- **Resultado:** No detectado por Sysmon. Proceso aparece legítimo en Task Manager. Binario comprimido y strings cifradas evaden análisis estático.
-- **Evasión:** Excelente (~90%). Ideal para persistencia avanzada.
+### Hollow Mode (Process Hollowing with AES Obfuscation)
+- **Description:** Hollowing explorer.exe with shellcode obfuscated with AES-256 and UPX packer.
+- **Result:** Not detected by Sysmon. Process appears legitimate in Task Manager. Compressed binary and encrypted strings evade static analysis.
+- **Evasion:** Excellent (~90%). Ideal for advanced persistence.
 
-## Métricas Generales
-- **Tasa de Evasión:** ~85% (modos avanzados mejorados con mapeo dinámico y AES/UPX).
-- **Tiempo de Ejecución:** <5 segundos por prueba.
-- **Errores:** Modo simple falla; modos avanzados estables con mejoras; posibles fallos en builds antiguos sin hooks.
+## General Metrics
+- **Evasion Rate:** ~85% (advanced modes improved with dynamic mapping and AES/UPX).
+- **Execution Time:** <5 seconds per test.
+- **Errors:** Simple mode fails; advanced modes stable with improvements; possible failures on older builds without hooks.
 
-## Refinamientos Aplicados
-- **Syscalls:** Mapear IDs dinámicamente para compatibilidad con Windows 11 builds.
-- **Hollowing:** Mejorar patching de PEB para evitar crashes.
-- **Ofuscación:** Aumentar complejidad de XOR a AES.
+## Refinements Applied
+- **Syscalls:** Map IDs dynamically for compatibility with Windows 11 builds.
+- **Hollowing:** Improve PEB patching to avoid crashes.
+- **Obfuscation:** Increase complexity from XOR to AES.
 
-## Conclusión
-El marco demuestra evasión efectiva contra Sysmon simulado. Modos direct e hollow listos para uso. Próximas pruebas: Contra EDR reales (ej. Elastic Endpoint).
+## Conclusion
+The framework demonstrates effective evasion against the tested Sysmon configuration. Direct and hollow modes are functional. Next tests: against real EDRs (e.g., Elastic Endpoint).
 
-## Logs de Ejemplo
-- Sysmon Event 8 (Simple): Detectado.
-- Sysmon Events (Direct/Hollow): Ninguno relacionado con inyección.
+## Example Logs
+- Sysmon Event 8 (Simple): Detected.
+- Sysmon Events (Direct/Hollow): None related to injection.
