@@ -1,17 +1,18 @@
----
 title: Remote Thread Injection via CreateRemoteThread
 id: 3a8c1f5e-9d2b-4e7a-8c3f-1b6e5a9d4c87
 status: experimental
 description: >
-    Detects CreateRemoteThread injection, the technique used by StyxLoaderX Simple mode.
-    Sysmon Event ID 8 (CreateRemoteThread) is logged when one process creates a thread
-    in another. This rule flags suspicious target processes commonly abused for injection.
+    Detects CreateRemoteThread injection, the technique used by
+    StyxLoaderX Simple mode (src/simple_injector.cpp). Sysmon Event
+    ID 8 (CreateRemoteThread) is logged when one process creates a
+    thread in another. This rule flags suspicious target processes
+    commonly abused for injection.
 references:
     - https://attack.mitre.org/techniques/T1055/001/
-    - https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/blob/main/src/MainLoader.cpp
+    - https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/blob/main/src/simple_injector.cpp
 author: Frangel Barrera
 date: 2026/06/30
-modified: 2026/06/30
+modified: 2026/07/04
 tags:
     - attack.t1055.001
     - attack.t1055
@@ -32,6 +33,9 @@ detection:
             - '\mshta.exe'
             - '\rundll32.exe'
             - '\regsvr32.exe'
+            - '\notepad++.exe'
+            - '\chrome.exe'
+            - '\firefox.exe'
     filter_legitimate:
         SourceImage|startswith:
             - 'C:\\Windows\\System32\\'
@@ -40,4 +44,5 @@ detection:
 falsepositives:
     - Legitimate remote thread creation by system processes
     - Antivirus engines injecting into user processes
+    - Some performance monitoring tools
 level: high

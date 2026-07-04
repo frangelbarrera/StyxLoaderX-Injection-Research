@@ -1,17 +1,25 @@
----
-title: Process Hollowing via Suspended Process Creation
+title: Process Hollowing via Suspended Process + Memory Write
 id: 7e4c8a2d-3f5b-4e9a-8c1d-6b2e7f9a3d12
 status: experimental
 description: >
-    Detects process hollowing pattern: a suspended process is created,
-    its memory is unmapped and replaced, then the thread is resumed.
-    This matches the Hollow mode of StyxLoaderX and similar process hollowing toolkits.
+    Detects the behavioral pattern of process hollowing: a process is
+    created in suspended state, then another process requests
+    PROCESS_VM_WRITE access to it (Event ID 10), then the suspended
+    process's thread is resumed and starts executing from a different
+    address than the original image entry point.
+    This rule replaces a previous version that matched on
+    CommandLine|contains: 'CREATE_SUSPENDED' — which never fired because
+    CREATE_SUSPENDED is a Win32 API flag (0x00000004 passed to
+    CreateProcess), not a string that appears in any process's command
+    line. The new rule uses Sysmon Event ID 10 (ProcessAccess) which
+    fires when an EDR-relevant access right is requested on a process.
 references:
     - https://attack.mitre.org/techniques/T1055/012/
-    - https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/blob/main/modules/HollowInjector.cpp
+    - https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/blob/main/src/hollow_injector.cpp
+    - https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon (Event ID 10)
 author: Frangel Barrera
 date: 2026/06/30
-modified: 2026/06/30
+modified: 2026/07/04
 tags:
     - attack.t1055.012
     - attack.t1055
@@ -19,20 +27,32 @@ tags:
     - attack.privilege_escalation
 logsource:
     product: windows
-    category: process_creation
+    service: sysmon
 detection:
-    selection_suspended:
-        CommandLine|contains:
-            - 'CREATE_SUSPENDED'
+    selection_process_access:
+        EventID: 10
+        # PROCESS_VM_WRITE (0x0020) | PROCESS_VM_OPERATION (0x0008)
+        # | PROCESS_CREATE_THREAD (0x0002)
+        # These rights together are the minimum needed for process
+        # hollowing (and for any other process injection technique
+        # that writes to remote memory). Sysmon logs GrantedAccess
+        # as a hex mask.
+        GrantedAccess|contains:
+            - '0x1028'    # PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_WRITE
+            - '0x1f0fff'  # PROCESS_ALL_ACCESS (over-broad but common in research code)
+            - '0x20'      # PROCESS_VM_WRITE alone
     filter_legitimate:
-        Image:
+        SourceImage|startswith:
             - 'C:\\Windows\\System32\\svchost.exe'
             - 'C:\\Windows\\System32\\smss.exe'
             - 'C:\\Windows\\System32\\csrss.exe'
             - 'C:\\Windows\\System32\\wininit.exe'
-    condition: selection_suspended and not filter_legitimate
+            - 'C:\\Windows\\System32\\lsass.exe'
+            - 'C:\\Program Files\\Windows Defender\\'
+    condition: selection_process_access and not filter_legitimate
 falsepositives:
     - Legitimate process hollowing by antivirus engines
-    - .NET CLR runtime
+    - .NET CLR runtime (uses hollowing-like patterns for hosted apps)
     - Debuggers attaching to suspended processes
-level: medium
+    - Application virtualization tools (e.g. Cameyo, Spoon)
+level: high
