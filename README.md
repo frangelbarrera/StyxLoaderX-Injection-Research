@@ -1,27 +1,54 @@
 ⚠️ ACADEMIC RESEARCH ONLY
-This code is published for educational purposes to help defenders 
+This code is published for educational purposes to help defenders
 understand evasion techniques. Do not use for malicious purposes.
 Author is a defensive security engineer.
 
-# StyxLoaderX: Advanced EDR Evasion Framework
+# StyxLoaderX: Windows x64 Injection Research Framework
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![C++](https://img.shields.io/badge/C%2B%2B-11-blue)](https://isocpp.org/)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
+[![C++](https://img.shields.io/badge/C%2B%2B-17-blue)](https://isocpp.org/)
 [![Windows](https://img.shields.io/badge/Platform-Windows-blue)](https://www.microsoft.com/en-us/windows)
 [![GitHub Stars](https://img.shields.io/github/stars/frangelbarrera/StyxLoaderX-EDR-Evasion?style=social)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
 
+> **Honesty note (refactor series):** This README previously claimed
+> "Advanced EDR Evasion Framework", "85% evasion rate", "Sub-5-second
+> payload deployment", "Tested Against Sysmon". Those claims were
+> fabricated — see `docs/test_report.md` for the full accounting. The
+> framework has been renamed to "Windows x64 Injection Research
+> Framework" and the claims have been corrected.
+
 ## Overview
 
-**StyxLoaderX** is a modular research framework for studying Endpoint Detection and Response (EDR) evasion techniques on Windows x64 systems. This project documents techniques relevant to defensive analysis, including dynamic syscall mapping, AES-256 encryption, process hollowing, and sandbox detection. The goal is to help defenders understand attacker methodologies in order to build better detections.
+**StyxLoaderX** is a modular research framework for studying Windows x64
+process injection techniques. It implements three injection modes
+(simple `CreateRemoteThread`, direct syscalls, process hollowing), a
+basic sandbox evasion check, AES-256 string obfuscation (with documented
+weaknesses), and a test shellcode that opens `calc.exe` as a canary.
 
-**Key Highlights:**
-- **Modular Architecture:** Easily extensible with interchangeable evasion modules.
-- **Dynamic Syscall Resolution:** Adapts to Windows updates without recompilation.
-- **AES Encryption & UPX Packing:** Protects binaries and strings from static analysis.
-- **Educational Focus:** Built for learning red team techniques; strictly for ethical, controlled environments.
-- **Performance:** <5s execution time, minimal resource footprint.
+The framework is **NOT** an operational EDR evasion tool. It does not
+implement Hell's Gate / Halo's Gate / Tartarus' Gate (SSN
+randomization), ETW/AMSI patching, sleep obfuscation (Ekko),
+callback-based injection, process doppelgänging/ghosting, or any
+persistence/C2/exfil mechanism. These omissions are deliberate — see
+`CONTRIBUTING.md` for the ethical scope.
 
-This framework is ideal for penetration testers, security researchers, and students exploring EDR bypass. It executes arbitrary payloads (e.g., opening calc.exe) while evading modern security solutions.
+**Key Highlights (honest):**
+- **Modular Architecture:** `include/`, `src/`, `tools/`, `modules/asm/`
+  with proper header/impl separation.
+- **Direct Syscalls via MASM stubs:** resolves syscall service numbers
+  (SSNs) at runtime by parsing ntdll stubs, then invokes the kernel
+  via the `syscall` instruction using MASM stubs.
+- **Process Hollowing (x64-correct):** uses `ctx.Rcx` for PEB pointer,
+  `ReadProcessMemory(PEB+0x10)` for image base, `ctx.Rip` for entry
+  point redirection, and patches `PEB.ImageBaseAddress`.
+- **String Obfuscation (with known weaknesses):** AES-256-CBC, but
+  runtime (not compile-time) so plaintext is in `.rdata`. Static
+  key/IV. Documented honestly in `string_obfuscator.hpp`.
+- **Sandbox Evasion (basic):** 5 checks (CPU, RAM, sleep-skipping,
+  BIOS vendor, Program Manager window). Deliberately omits
+  anti-debugging, MAC OUI, hostname patterns — see `CONTRIBUTING.md`.
+- **Test Shellcode:** position-independent, loader-resolved `WinExec`
+  address (decision D10 — see `docs/Whitepaper.md`).
 
 **Repository URL:** [https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
 **Documentation:** [Full Whitepaper](docs/Whitepaper.md) | [Test Report](docs/test_report.md) | [Defensive Detections](docs/detections/README.md)
@@ -30,7 +57,9 @@ This framework is ideal for penetration testers, security researchers, and stude
 
 ## ⚖️ Ethical Use Policy
 
-This framework documents offensive techniques that have legitimate defensive applications. Security professionals must understand attacker methodologies to build effective detections and protections.
+This framework documents offensive techniques that have legitimate
+defensive applications. Security professionals must understand attacker
+methodologies to build effective detections and protections.
 
 **Authorized use cases:**
 - Red team assessments with signed Rules of Engagement
@@ -47,7 +76,12 @@ This framework documents offensive techniques that have legitimate defensive app
 **By using this software you agree that you:**
 - ✅ Have explicit, written authorization before testing any system
 - ✅ Are conducting legitimate red team assessments or academic research
-- ✅ Will comply with all applicable laws (CFAA, Computer Misuse Act, Budapest Convention, etc.)
+- ✅ Will comply with all applicable laws, including but not limited to:
+  - United States: Computer Fraud and Abuse Act (18 U.S.C. § 1030)
+  - United Kingdom: Computer Misuse Act 1990 (sections 1, 3, 3ZA)
+  - European Union: Directive 2013/40/EU (articles 3-9)
+  - Spain: Ley Orgánica 10/1995, art. 197 bis (Código Penal)
+  - Budapest Convention on Cybercrime (2001)
 - ❌ Will NOT use these techniques against systems without authorization
 - ❌ Will NOT use this for any illegal or malicious purpose
 
@@ -59,57 +93,108 @@ This framework documents offensive techniques that have legitimate defensive app
 - [Installation](#installation)
 - [Usage](#usage)
 - [Testing](#testing)
-- [Screenshots](#screenshots)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
 
 ## Features
 
-### Core Capabilities
-- **Direct Syscalls with Dynamic Mapping:** Bypasses userland hooks by calling NT functions directly, resolving syscall numbers at runtime for compatibility across Windows builds.
-- **Process Hollowing:** Replaces legitimate process memory with malicious code, making injections appear as normal system activity.
-- **String Obfuscation:** AES-256 encryption for sensitive data (e.g., DLL names), decrypted on-the-fly to evade signature-based detection.
-- **Binary Packing:** UPX compression reduces file size by ~50% and adds obfuscation layers.
-- **Sandbox Evasion:** Detects and aborts in virtualized or analysis environments (e.g., VMs, sandboxes).
+### Core Capabilities (honest)
+- **Direct Syscalls (MASM stubs):** resolves SSNs at runtime by parsing
+  ntdll stubs (`B8 ?? ?? ?? ?? 0F 05` pattern), then invokes the kernel
+  via `syscall` instruction in MASM stubs that correctly marshal Win64
+  calling-convention arguments into the Win32 syscall ABI. Does NOT
+  implement SSN randomization or hook detection — see `CONTRIBUTING.md`.
+- **Process Hollowing (x64-correct):** uses `ctx.Rcx` for PEB pointer,
+  `ReadProcessMemory(PEB+0x10)` for image base, `ctx.Rip` for entry
+  point, patches `PEB.ImageBaseAddress`. Works for raw shellcode
+  payloads; full PE payload support is tracked as future work.
+- **Simple CreateRemoteThread Injection:** the classic baseline
+  technique. Detected by Sysmon Event ID 8 — kept for educational
+  comparison.
+- **String Obfuscation (weaknesses documented):** AES-256-CBC via
+  OpenSSL. KNOWN WEAKNESSES: (1) runtime evaluation, plaintext is in
+  `.rdata`; (2) static key/IV = sequential bytes `0x00..0x1F` /
+  `0x00..0x0F`; (3) IV reuse breaks CBC semantics; (4) deprecated
+  `AES_cbc_encrypt` API. See `string_obfuscator.hpp` for full
+  disclosure.
+- **Binary Packing:** UPX compression (optional). The build script
+  applies UPX if available; failure is non-fatal.
+- **Sandbox Evasion (basic):** 5 checks (CPU <2, RAM <2GB, sleep-
+  skipping, BIOS vendor VMware/VirtualBox, Program Manager window).
+  Deliberately omits anti-debugging, MAC OUI, hostname/username
+  patterns — see `CONTRIBUTING.md`.
 
-### Research Metrics
-- **Tested Against:** Sysmon with high-telemetry configuration (see docs/test_report.md for methodology).
-- **Execution Speed:** Sub-5-second payload deployment.
-- **Compatibility:** Windows 10/11 x64; supports multiple injection modes.
-- **Modularity:** Plug-and-play modules for testing different evasion strategies.
+### Research Status
+- **Tested in lab:** NOT YET. See `docs/test_report.md` for the test
+  plan and the accounting of why previous "85% evasion rate" claims
+  were fabricated.
+- **Compilation:** verified via g++ -fsyntax-only + g++ -c on Linux
+  with a Win32 API shim. MASM stubs verified via pwntools asm() for
+  opcode correctness. Full Windows build verification pending lab
+  access.
+- **Compatibility:** Windows 10/11 x64. SSNs are resolved at runtime
+  so the same binary works across builds (modulo the documented hook
+  detection limitation).
+- **Modularity:** `include/styxloader/` public headers, `src/`
+  implementations, `tools/` executables. See Architecture below.
 
 ### Educational Value
-- Learn Windows API internals, memory manipulation, and red team tactics.
-- Includes comprehensive documentation, research notes, and test reports.
-- Suitable for cybersecurity courses, CTFs, or portfolio projects.
+- Learn Windows x64 internals, the syscall ABI, PEB layout, CONTEXT
+  structure, and process hollowing technique.
+- Includes Sigma rules + Sysmon config delta for detection engineering.
+- Suitable for cybersecurity courses, CTFs, or portfolio projects
+  (with appropriate ethics framing).
 
 ## Architecture
 
 ```
 StyxLoaderX/
-├── src/                 # Main loaders (MainLoader.cpp, SimpleInjector.cpp)
-├── modules/             # Evasion modules (DirectSyscall.cpp, HollowInjector.cpp, etc.)
-├── shellcode/           # Assembly payloads (shellcode.asm)
-├── docs/                # Documentation (Whitepaper.md, test_report.md, etc.)
-├── run_project.bat      # Automated build and execution script
-└── README.md            # This file
+├── include/styxloader/  # Public headers (one .hpp per module)
+├── src/                 # Library implementations (no main() here)
+├── tools/               # Executables (main() lives here)
+│   ├── main_loader.cpp
+│   └── simple_injector_tool.cpp
+├── modules/asm/         # MASM source (direct syscall stubs)
+│   └── styx_syscalls.asm
+├── shellcode/           # NASM source (test canary)
+│   └── shellcode.asm
+├── docs/                # Documentation
+│   ├── Whitepaper.md
+│   ├── test_report.md
+│   ├── config_lab.md
+│   ├── research_hooks.md
+│   └── detections/      # Sigma rules + Sysmon delta
+├── run_project.bat      # Legacy build script (CMake recommended)
+├── CMakeLists.txt       # Modern build system
+└── README.md
 ```
 
-- **MainLoader.cpp:** Central orchestrator selecting evasion modes (simple, direct, hollow).
-- **Modules:** Reusable components for specific techniques (e.g., syscalls, encryption).
-- **Shellcode:** Customizable payloads compiled from Assembly.
-- **Automation:** `run_project.bat` handles dependencies, compilation, and testing.
+- **`include/styxloader/*.hpp`**: public API for each module
+  (`ReadShellcode`, `IsRunningInSandbox`, `DirectInject`,
+  `ProcessHollowing`, `SimpleInject`, `StringObfuscator`).
+- **`src/*.cpp`**: library implementations, no `main()`.
+- **`tools/*.cpp`**: executables with `main()`.
+- **`modules/asm/styx_syscalls.asm`**: MASM stubs for direct syscalls.
+- **`shellcode/shellcode.asm`**: NASM source for the calc.exe canary.
 
 ## Installation
 
 ### Prerequisites
 - **Operating System:** Windows 10/11 x64.
-- **Tools:** Visual Studio Community (with C++ Desktop Development), NASM Assembler.
-- **Hardware:** At least 4GB RAM (8GB recommended for VMs).
-- **Permissions:** Administrator rights for execution.
+- **Tools:** Visual Studio 2022 Build Tools (C++ workload) with MASM
+  (`ml64.exe`), NASM 2.16+.
+- **OpenSSL:** 3.x. Recommended: install via `vcpkg` (`vcpkg install
+  openssl:x64-windows`). Alternative: download from slproweb.com (the
+  `run_project.bat` script handles this with Authenticode verification,
+  but vcpkg is preferred for supply-chain safety).
+- **Hardware:** At least 4 GB RAM (8 GB recommended for VMs). Note:
+  Windows 11 minimum is 4 GB / 64 GB disk.
+- **Permissions:** Administrator rights for execution (required for
+  `OpenProcess` with `PROCESS_VM_OPERATION` etc.).
 
 ### Step-by-Step Setup
+
 1. **Clone the Repository:**
    ```bash
    git clone https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion.git
@@ -117,16 +202,26 @@ StyxLoaderX/
    ```
 
 2. **Install Dependencies:**
-   - Download and install [Visual Studio](https://visualstudio.microsoft.com/) with C++ workload.
-   - Download and install [NASM](https://www.nasm.us/).
-   - The `run_project.bat` script will automatically download OpenSSL and UPX if needed.
+   - Visual Studio 2022 Build Tools with C++ workload (includes
+     `cl.exe` and `ml64.exe`).
+   - NASM: https://www.nasm.us/
+   - OpenSSL: recommended via vcpkg. Alternative: `run_project.bat`
+     downloads it (with Authenticode verification).
 
-3. **Build the Project:**
+3. **Build the Project (Option A — CMake, recommended):**
+   ```cmd
+   cmake -B build -S . -DOPENSSL_ROOT=C:/vcpkg/installed/x64-windows
+   cmake --build build --config Release
+   ```
+
+4. **Build the Project (Option B — legacy .bat):**
    - Run `run_project.bat` as administrator.
-   - It compiles shellcode, loaders, and applies obfuscation.
+   - It compiles shellcode (NASM), MASM stubs (`ml64`), and loaders
+     (`cl`), then optionally applies UPX.
 
-4. **Verify Installation:**
-   - Check for generated files: `MainLoader.exe`, `SimpleInjector.exe`, `shellcode.bin`.
+5. **Verify Installation:**
+   - Check for generated files: `MainLoader.exe`,
+     `SimpleInjector.exe`, `shellcode.bin`.
    - Test in a VM (see [Testing](#testing)).
 
 For detailed lab setup, see [docs/config_lab.md](docs/config_lab.md).
@@ -134,71 +229,123 @@ For detailed lab setup, see [docs/config_lab.md](docs/config_lab.md).
 ## Usage
 
 ### Quick Start
-1. Execute `run_project.bat` and select a mode (e.g., "direct" for advanced evasion).
-2. Provide a target process PID or EXE (e.g., notepad.exe).
-3. Monitor results: Payload executes stealthily.
+1. Build the project (see Installation).
+2. Launch a target process (e.g. `notepad.exe`) and note its PID.
+3. Run `MainLoader.exe <mode> <target> <shellcode.bin>`.
 
 ### Command Examples
-- **Simple Mode:** `MainLoader.exe simple 1234 shellcode\shellcode.bin` (Basic injection).
-- **Direct Mode:** `MainLoader.exe direct 1234 shellcode\shellcode.bin` (Syscall-based, high evasion).
-- **Hollow Mode:** `MainLoader.exe hollow explorer.exe shellcode\shellcode.bin` (Process hollowing).
+- **Simple Mode:** `MainLoader.exe simple 1234 shellcode\shellcode.bin`
+  (basic `CreateRemoteThread` injection; will be detected by Sysmon
+  Event ID 8).
+- **Direct Mode:** `MainLoader.exe direct 1234 shellcode\shellcode.bin`
+  (direct syscalls; bypasses Sysmon userland hooks for
+  `NtAllocateVirtualMemory` / `NtWriteVirtualMemory` /
+  `NtCreateThreadEx`).
+- **Hollow Mode:** `MainLoader.exe hollow C:\Windows\System32\notepad.exe shellcode\shellcode.bin`
+  (process hollowing of notepad.exe).
 
 ### Modes Overview
-| Mode      | Description                          | Evasion Level | Use Case                  |
-|-----------|--------------------------------------|---------------|---------------------------|
-| Simple    | Basic CreateRemoteThread injection   | Low (detectable) | Testing basics            |
-| Direct    | Dynamic syscalls                     | High (~80%)    | Bypassing hooks           |
-| Hollow    | Process hollowing + AES              | High            | Detection engineering     |
+| Mode      | Description                          | Sysmon Event ID 8 (CreateRemoteThread) | Use Case                  |
+|-----------|--------------------------------------|----------------------------------------|---------------------------|
+| Simple    | Basic `CreateRemoteThread` injection | Detected                                | Baseline / educational    |
+| Direct    | Direct syscalls (MASM stubs)         | Not triggered for the syscall itself (but `CreateRemoteThread` is replaced by `NtCreateThreadEx` via direct syscall, which Sysmon v13+ may still catch via kernel callbacks) | Direct syscall research   |
+| Hollow    | Process hollowing                    | Not triggered (uses `ResumeThread`, not `CreateRemoteThread`) | Process hollowing research |
+
+Note: the table describes the EXPECTED behavior based on the technique.
+Actual detection depends on your Sysmon config version and EDR product.
+See `docs/test_report.md` for the test plan (results pending lab
+verification).
 
 ### Customization
-- Modify `shellcode/shellcode.asm` for custom payloads.
-- Extend modules in `modules/` for new techniques.
-- Adjust obfuscation keys in `StringObfuscator.h`.
+- Modify `shellcode/shellcode.asm` for custom payloads (keep the
+  loader-resolved pattern — first 8 bytes are the patched WinExec
+  address).
+- Extend modules in `src/` and `include/styxloader/` for new
+  techniques (read `CONTRIBUTING.md` first — ethical scope is
+  enforced).
+- Adjust AES key/IV in `string_obfuscator.hpp` (note: the sequential
+  bytes are a documented weakness, not a default).
 
 ## Testing
 
 Test in a controlled VM environment to avoid risks.
 
 ### Setup Test Environment
-- Install Sysmon with high-telemetry config (see [docs/config_lab.md](docs/config_lab.md)).
-- Run `run_project.bat` and select modes.
-- Check Event Viewer > Windows Logs > Application for Sysmon events (ID 8 for injections).
+- Install Sysmon with high-telemetry config (see
+  [docs/config_lab.md](docs/config_lab.md)).
+- Build the project (see Installation).
+- Check Event Viewer > Applications and Services Logs > Microsoft >
+  Windows > Sysmon > Operational for events.
 
 ### Expected Results
-- **Simple mode:** Sysmon Event ID 8 (CreateRemoteThread) should be logged.
-- **Direct/Hollow modes:** Test which telemetry gaps appear in your Sysmon config.
-- **Execution time:** <5s for payload deployment.
+- **Simple mode:** Sysmon Event ID 8 (CreateRemoteThread) should be
+  logged.
+- **Direct mode:** Sysmon Event ID 8 should NOT fire for the injection
+  itself (direct syscalls bypass userland hooks). Kernel-level
+  telemetry (Sysmon v15+ kernel callbacks, ETW) may still detect.
+- **Hollow mode:** Sysmon Event ID 1 (suspended process creation) and
+  Event ID 10 (process access) may fire.
+- **Calc canary:** `calc.exe` should open in all three modes if the
+  injection succeeds.
 - **Debugging:** Use x64dbg for process inspection.
-- **Detection engineering:** Use the gaps you find to build Sigma rules or tune Sysmon configs.
+- **Detection engineering:** Use the gaps you find to build Sigma
+  rules or tune Sysmon configs (see `docs/detections/`).
 
-Full test report: [docs/test_report.md](docs/test_report.md).
+Full test report: [docs/test_report.md](docs/test_report.md). Note:
+as of the refactor series, tests have NOT been run in lab — the test
+report documents the plan and the accounting of why previous claims
+were fabricated.
 
 ## Contributing
 
-Contributions are welcome! This is an educational project.
+Contributions are welcome! This is an educational project with
+enforced ethical scope.
 
 1. Fork the repo
 2. Create a feature branch: `git checkout -b feature/new-technique`
-3. Ensure all new modules include documentation
-4. Submit a PR with a clear description of the technique and its defensive implications
+3. Read `CONTRIBUTING.md` for the ethical scope (no persistence, C2,
+   exfil, AMSI/ETW bypass, SSN randomization, etc.)
+4. Ensure all new modules include documentation and a corresponding
+   defensive detection (Sigma rule or Sysmon delta)
+5. Submit a PR with a clear description of the technique and its
+   defensive implications
 
 **Contribution guidelines:**
-- Follow C++ best practices
-- Document the defensive countermeasure for every offensive technique added
+- Follow C++ best practices (C++17, RAII, no raw `new`/`delete` without
+  smart pointers)
+- Document the defensive countermeasure for every offensive technique
+  added
 - Test in isolated VMs only — never test against production systems
 - Update the relevant docs (Whitepaper, test_report) with your findings
+- Do NOT add techniques that cross the ethical scope (see
+  `CONTRIBUTING.md`)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0
+or later** — see the [LICENSE](LICENSE) file for details.
+
+> Why GPL-3.0 (was previously MIT): MIT is the most permissive OSI
+> license and permits unrestricted use including malicious use. No
+> mainstream offensive research framework uses MIT (Metasploit = BSD-3,
+> Sliver/Havoc/Covenant = GPL-3, Mythic = Apache-2). GPL-3's copyleft
+> requirement means any fork that distributes binaries must also
+> publish source, which exposes malicious forks. This is a deliberate
+> harm-reduction measure, not a restriction on legitimate research.
 
 ## Acknowledgments
 
-- Inspired by open-source projects like [klezVirus/inceptor](https://github.com/klezVirus/inceptor).
-- Research based on Windows internals and EDR bypass techniques.
+- Inspired by open-source projects like [klezVirus/inceptor](https://github.com/klezVirus/inceptor)
+  and [klezVirus/SysWhispers3](https://github.com/klezVirus/SysWhispers3).
+- Process hollowing reference: [hasherezade/hollowing_experiments](https://github.com/hasherezade/hollowing_experiments).
+- Syscall reference: [j00ru's syscall table](https://j00ru.vexillium.org/syscalls/nt/64/).
+- Research based on Windows Internals (Russinovich) and MalwareTech
+  blog posts.
 - Thanks to the cybersecurity community for shared knowledge.
 
 ---
 
-**Built for defensive cybersecurity research. See CONTRIBUTING.md for guidelines on adding detection artifacts alongside new techniques.**
-
+**Built for defensive cybersecurity research. See `CONTRIBUTING.md`
+for guidelines on adding detection artifacts alongside new techniques,
+and `SECURITY.md` for responsible disclosure of security issues found
+in this framework.**
