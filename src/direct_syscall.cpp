@@ -18,7 +18,10 @@
 extern "C" {
     NTSTATUS StyxNtAllocateVirtualMemory(HANDLE, PVOID*, ULONG_PTR, PSIZE_T, ULONG, ULONG);
     NTSTATUS StyxNtWriteVirtualMemory(HANDLE, PVOID, PVOID, SIZE_T, PSIZE_T);
-    NTSTATUS StyxNtCreateThreadEx(PHANDLE, ACCESS_MASK, POBJECT_ATTRIBUTES, HANDLE, PVOID, PVOID, ULONG, SIZE_T, SIZE_T, SIZE_T, PPS_ATTRIBUTE_LIST);
+    // POBJECT_ATTRIBUTES / PPS_ATTRIBUTE_LIST are not in <windows.h> (they
+    // live in <winternl.h> / <ntifs.h>). We always pass NULL for these, so
+    // declare them as PVOID to avoid pulling in NT internals headers.
+    NTSTATUS StyxNtCreateThreadEx(PHANDLE, ACCESS_MASK, PVOID, HANDLE, PVOID, PVOID, ULONG, SIZE_T, SIZE_T, SIZE_T, PVOID);
 }
 
 // SSN globals, set by GetSyscallNumber() and read by the MASM stubs.
