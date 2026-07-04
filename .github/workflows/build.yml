@@ -1,0 +1,92 @@
+name: Build (Windows x64)
+
+# =============================================================================
+# StyxLoaderX — CI workflow
+# =============================================================================
+# Per decision D7, this workflow verifies COMPILATION only. It does NOT
+# run functional tests (calc.exe canary, Sysmon log verification) because
+# that would require a Windows VM with Sysmon installed, which is out of
+# scope for a research repo's CI.
+#
+# What this workflow verifies:
+#   - CMake configure step succeeds (finds OpenSSL, MASM, NASM).
+#   - Library target (styxloader) compiles without errors.
+#   - Both executables (main_loader, simple_injector_tool) link.
+#   - NASM assembles shellcode.asm without errors.
+#   - The .obj from MASM is produced.
+#
+# What this workflow does NOT verify:
+#   - Whether the binary actually runs.
+#   - Whether the MASM stubs produce correct syscall behavior.
+#   - Whether calc.exe opens after injection.
+#   - Whether Sysmon logs the expected events.
+# These require a lab VM with Sysmon + EDR — see docs/test_report.md
+# for the manual test protocol.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up NASM
+        # The windows-latest runner does not have NASM pre-installed.
+        # We use a community action to install it.
+        uses: ilammy/setup-nasm@v1
+        with:
+          version: 2.16.01
+
+      - name: Set up vcpkg
+        # vcpkg is pre-installed on windows-latest runners; we just need
+        # to set the environment variable so CMake can find it.
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitDate: 2024-01-01
+
+      - name: Install OpenSSL via vcpkg
+        run: |
+          vcpkg install openssl:x64-windows
+
+      - name: Configure CMake
+        # Configure with vcpkg toolchain so find_package(OpenSSL) works.
+        run: |
+          cmake -B build -S . `
+            -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Verify build artifacts
+        run: |
+          if (-not (Test-Path "build/Release/main_loader.exe")) {
+            throw "main_loader.exe not found"
+          }
+          if (-not (Test-Path "build/Release/simple_injector_tool.exe")) {
+            throw "simple_injector_tool.exe not found"
+          }
+          if (-not (Test-Path "build/shellcode.bin")) {
+            throw "shellcode.bin not found"
+          }
+          Write-Host "Build artifacts verified:"
+          Get-ChildItem build/Release/*.exe | Format-Table Name, Length
+          Get-ChildItem build/shellcode.bin | Format-Table Name, Length
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: styxloader-build-windows-x64
+          path: |
+            build/Release/main_loader.exe
+            build/Release/simple_injector_tool.exe
+            build/Release/*.dll
+            build/shellcode.bin
+          retention-days: 7
