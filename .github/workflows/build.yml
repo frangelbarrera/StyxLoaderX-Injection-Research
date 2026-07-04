@@ -19,7 +19,7 @@ jobs:
         run: vcpkg install openssl:x64-windows
 
       - name: Configure
-        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+        run: cmake -B build -S . -DCMAKE_PREFIX_PATH=C:/vcpkg/installed/x64-windows
 
       - name: Build
         run: cmake --build build --config Release
