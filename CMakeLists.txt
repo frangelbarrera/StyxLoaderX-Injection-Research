@@ -54,15 +54,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC)
-    add_compile_options(/W4 /permissive- /WX)
-    # /W4 = high warning level
-    # /permissive- = strict standards conformance
-    # /WX = treat warnings as errors
-    # Note: AES_cbc_encrypt deprecation warning (C4996) from OpenSSL 3.0
-    # is suppressed at the source level in src/string_obfuscator.cpp via
-    # a #pragma warning(disable: 4996), with a TODO for EVP migration.
+    # Use generator expressions to restrict these to C++ only — MASM (ml64)
+    # does not understand /permissive- or /W4 and would fail with /WX.
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/W4>
+                        $<$<COMPILE_LANGUAGE:CXX>:/permissive->
+                        $<$<COMPILE_LANGUAGE:CXX>:/WX>)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wall>
+                        $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
+                        $<$<COMPILE_LANGUAGE:CXX>:-Wpedantic>
+                        $<$<COMPILE_LANGUAGE:CXX>:-Werror>)
 endif()
 
 # -----------------------------------------------------------------------------
