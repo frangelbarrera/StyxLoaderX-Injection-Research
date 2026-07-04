@@ -46,6 +46,10 @@ NTSTATUS IndirectSyscallNtAllocateVirtualMemory(
         call GetTransitionFunction
         add rsp, 16  ; Limpiar pila
     }
+    // Stopgap: this technique is fundamentally broken (see audit report).
+    // The file is slated for removal in a follow-up commit; this return
+    // is added only so the file compiles in the interim.
+    return (NTSTATUS)0xC0000001L;  // STATUS_UNSUCCESSFUL
 }
 
 // Función de inyección usando indirect syscall

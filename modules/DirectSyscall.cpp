@@ -26,7 +26,7 @@ ULONG GetSyscallNumber(const char* syscallName) {
     // Search pattern: mov eax, XX; syscall
     unsigned char* p = (unsigned char*)funcAddr;
     for (int i = 0; i < 50; ++i) {  // Search first 50 bytes for hooks
-        if (p[i] == 0xB8 && p[i + 5] == 0x0F && p[i[i + 6] == 0x05) {  // mov eax, imm; syscall
+        if (p[i] == 0xB8 && p[i + 5] == 0x0F && p[i + 6] == 0x05) {  // mov eax, imm; syscall
             return *(ULONG*)(p + i + 1);  // Syscall number
         }
     }

@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <iostream>
 #include <vector>
+#include <string>
 
 // Function to detect sandbox based on various indicators
 bool IsRunningInSandbox() {

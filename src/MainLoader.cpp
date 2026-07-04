@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 #include "../modules/StringObfuscator.h" // Include obfuscation
 #include "../modules/SandboxCheck.cpp"   // Include sandbox checks
 #include "../modules/DirectSyscall.cpp"  // Include direct syscalls

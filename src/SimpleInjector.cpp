@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 // Function to read shellcode from file
 std::vector<unsigned char> ReadShellcode(const char* filename) {
