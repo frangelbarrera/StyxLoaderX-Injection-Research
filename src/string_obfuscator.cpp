@@ -2,6 +2,15 @@
 
 #include <cstring>
 
+// Suppress OpenSSL 3.0 deprecation warnings for AES_cbc_encrypt.
+// TODO (future work): migrate to the EVP API (EVP_CIPHER_CTX_new +
+// EVP_EncryptInit_ex + EVP_EncryptUpdate + EVP_EncryptFinal_ex).
+// Tracked in docs/Whitepaper.md under "Future Work (legitimate)".
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4996)  // AES_cbc_encrypt deprecated since OpenSSL 3.0
+#endif
+
 namespace styxloader {
 
 // Out-of-line definitions for the static constexpr members.
@@ -44,3 +53,7 @@ std::string StringObfuscator::GetDecryptedString(const std::vector<unsigned char
 }
 
 }  // namespace styxloader
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
