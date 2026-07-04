@@ -9,6 +9,7 @@ Author is a defensive security engineer.
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue)](https://isocpp.org/)
 [![Windows](https://img.shields.io/badge/Platform-Windows-blue)](https://www.microsoft.com/en-us/windows)
 [![GitHub Stars](https://img.shields.io/github/stars/frangelbarrera/StyxLoaderX-EDR-Evasion?style=social)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
+[![CI](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/actions/workflows/build.yml/badge.svg)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/actions/workflows/build.yml)
 
 > **Honesty note (refactor series):** This README previously claimed
 > "Advanced EDR Evasion Framework", "85% evasion rate", "Sub-5-second
@@ -177,6 +178,69 @@ StyxLoaderX/
 - **`tools/*.cpp`**: executables with `main()`.
 - **`modules/asm/styx_syscalls.asm`**: MASM stubs for direct syscalls.
 - **`shellcode/shellcode.asm`**: NASM source for the calc.exe canary.
+
+### Build pipeline
+
+```mermaid
+flowchart TD
+    A[nasm shellcode.asm] --> B[shellcode.bin 42 bytes]
+    C[ml64 styx_syscalls.asm] --> D[styx_syscalls.obj]
+    E[cl src/*.cpp + include/*.hpp] --> F[styxloader.lib]
+    D --> F
+    F --> G[cl tools/main_loader.cpp]
+    F --> H[cl tools/simple_injector_tool.cpp]
+    G --> I[main_loader.exe ~50 KB]
+    H --> J[simple_injector_tool.exe ~32 KB]
+    K[OpenSSL via vcpkg] --> I
+    K --> J
+```
+
+### CI build artifacts
+
+Every push to `main` triggers a GitHub Actions build on `windows-latest`
+that compiles the project with MSVC + MASM + NASM + OpenSSL (via vcpkg).
+The resulting binaries are uploaded as workflow artifacts (7-day retention).
+
+Last successful build ([run #5](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/actions/runs/28710111074)):
+
+| Artifact | Size | Type | SHA256 |
+|----------|------|------|--------|
+| `main_loader.exe` | 50,176 B | PE32+ x86-64 console | `27e240a3a0755c0d4dd7f4b48d28e07ccc6ff813f8ccb51dbaee000f156d1ae2` |
+| `simple_injector_tool.exe` | 31,744 B | PE32+ x86-64 console | `759884e91d124295058bce6be49b1e6896af67b8c2f0bcd0ab1faa52f26ee776` |
+| `libcrypto-3-x64.dll` | 5,357,568 B | PE32+ x86-64 DLL | `36f9807147e85969141959c73b60a85d7da1dc647aa161042f5c0eb4675cc309` |
+| `libssl-3-x64.dll` | 878,592 B | PE32+ x86-64 DLL | `ed74f34c6f826e6d3a0789c2f2c8b30edcb2ed95b8d852115160be3562122447` |
+| `shellcode.bin` | 42 B | raw shellcode | `7342ba4d0283914bf557eabf66313d9e0e6be0658cb331710d0295672e1f6294` |
+
+All four PE files start with the `MZ` magic bytes (`4d 5a 90 00`). The
+shellcode starts with 8 zero bytes (the loader-patched WinExec placeholder).
+
+### Shellcode layout (calc.exe canary)
+
+Position-independent, loader-resolved. First 8 bytes are patched at runtime
+with the address of `WinExec` (resolved via `GetProcAddress`). The code at
+offset 8+ uses RIP-relative addressing.
+
+```
+Offset  Bytes                          Disassembly
+------  -----------------------------  --------------------------------
+0x00    00 00 00 00 00 00 00 00        ; placeholder: WinExec addr (patched)
+0x08    48 8b 05 f1 ff ff ff           mov rax, [rip-15]      ; -> 0x00
+0x0f    48 8d 0d 0b 00 00 00           lea rcx, [rip+0x0b]    ; -> 0x21
+0x16    ba 05 00 00 00                 mov edx, 5             ; SW_SHOW
+0x1b    ff d0                          call rax               ; WinExec(...)
+0x1d    48 31 c0                       xor rax, rax
+0x20    c3                             ret
+0x21    63 61 6c 63 2e 65 78 65 00     "calc.exe\0"
+```
+
+Total: 42 bytes. The full hex dump:
+
+```
+00000000  00 00 00 00 00 00 00 00  48 8b 05 f1 ff ff ff 48  |........H......H|
+00000010  8d 0d 0b 00 00 00 ba 05  00 00 00 ff d0 48 31 c0  |.............H1.|
+00000020  c3 63 61 6c 63 2e 65 78  65 00                    |.calc.exe.|
+0000002a
+```
 
 ## Installation
 
