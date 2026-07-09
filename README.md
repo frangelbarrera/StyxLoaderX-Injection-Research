@@ -195,9 +195,7 @@ flowchart TD
     K --> J
 ```
 
-### CI build artifacts
-
-CI build verification
+### CI build verification
 
 Every push to main triggers a GitHub Actions build on windows-latest that compiles the project with MSVC + MASM + NASM + OpenSSL (via vcpkg). The build is verified via Test-Path checks, but no binaries are uploaded or distributed — compiled artifacts are discarded with the ephemeral runner.
 
