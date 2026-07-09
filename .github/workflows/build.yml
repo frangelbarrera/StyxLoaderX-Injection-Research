@@ -29,12 +29,3 @@ jobs:
           Test-Path build/Release/main_loader.exe
           Test-Path build/Release/simple_injector_tool.exe
           Test-Path build/shellcode.bin
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: binaries
-          path: |
-            build/Release/*.exe
-            build/Release/*.dll
-            build/shellcode.bin
