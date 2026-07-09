@@ -8,8 +8,8 @@ Author is a defensive security engineer.
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE)
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue)](https://isocpp.org/)
 [![Windows](https://img.shields.io/badge/Platform-Windows-blue)](https://www.microsoft.com/en-us/windows)
-[![GitHub Stars](https://img.shields.io/github/stars/frangelbarrera/StyxLoaderX-EDR-Evasion?style=social)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
-[![CI](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/actions/workflows/build.yml/badge.svg)](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/actions/workflows/build.yml)
+[![GitHub Stars](https://img.shields.io/github/stars/frangelbarrera/StyxLoaderX-Injection-Research?style=social)](https://github.com/frangelbarrera/StyxLoaderX-Injection-Research)
+[![CI](https://github.com/frangelbarrera/StyxLoaderX-Injection-Research/actions/workflows/build.yml/badge.svg)](https://github.com/frangelbarrera/StyxLoaderX-Injection-Research/actions/workflows/build.yml)
 
 > **Honesty note (refactor series):** This README previously claimed
 > "Advanced EDR Evasion Framework", "85% evasion rate", "Sub-5-second
@@ -51,7 +51,7 @@ persistence/C2/exfil mechanism. These omissions are deliberate — see
 - **Test Shellcode:** position-independent, loader-resolved `WinExec`
   address (decision D10 — see `docs/Whitepaper.md`).
 
-**Repository URL:** [https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion)
+**Repository URL:** [https://github.com/frangelbarrera/StyxLoaderX-Injection-Research](https://github.com/frangelbarrera/StyxLoaderX-Injection-Research)
 **Documentation:** [Full Whitepaper](docs/Whitepaper.md) | [Test Report](docs/test_report.md) | [Defensive Detections](docs/detections/README.md)
 
 ---
@@ -197,22 +197,9 @@ flowchart TD
 
 ### CI build artifacts
 
-Every push to `main` triggers a GitHub Actions build on `windows-latest`
-that compiles the project with MSVC + MASM + NASM + OpenSSL (via vcpkg).
-The resulting binaries are uploaded as workflow artifacts (7-day retention).
+CI build verification
 
-Last successful build ([run #5](https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion/actions/runs/28710111074)):
-
-| Artifact | Size | Type | SHA256 |
-|----------|------|------|--------|
-| `main_loader.exe` | 50,176 B | PE32+ x86-64 console | `27e240a3a0755c0d4dd7f4b48d28e07ccc6ff813f8ccb51dbaee000f156d1ae2` |
-| `simple_injector_tool.exe` | 31,744 B | PE32+ x86-64 console | `759884e91d124295058bce6be49b1e6896af67b8c2f0bcd0ab1faa52f26ee776` |
-| `libcrypto-3-x64.dll` | 5,357,568 B | PE32+ x86-64 DLL | `36f9807147e85969141959c73b60a85d7da1dc647aa161042f5c0eb4675cc309` |
-| `libssl-3-x64.dll` | 878,592 B | PE32+ x86-64 DLL | `ed74f34c6f826e6d3a0789c2f2c8b30edcb2ed95b8d852115160be3562122447` |
-| `shellcode.bin` | 42 B | raw shellcode | `7342ba4d0283914bf557eabf66313d9e0e6be0658cb331710d0295672e1f6294` |
-
-All four PE files start with the `MZ` magic bytes (`4d 5a 90 00`). The
-shellcode starts with 8 zero bytes (the loader-patched WinExec placeholder).
+Every push to main triggers a GitHub Actions build on windows-latest that compiles the project with MSVC + MASM + NASM + OpenSSL (via vcpkg). The build is verified via Test-Path checks, but no binaries are uploaded or distributed — compiled artifacts are discarded with the ephemeral runner.
 
 ### Shellcode layout (calc.exe canary)
 
@@ -261,8 +248,8 @@ Total: 42 bytes. The full hex dump:
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/frangelbarrera/StyxLoaderX-EDR-Evasion.git
-   cd StyxLoaderX-EDR-Evasion
+   git clone https://github.com/frangelbarrera/StyxLoaderX-Injection-Research.git
+   cd StyxLoaderX-Injection-Research
    ```
 
 2. **Install Dependencies:**
