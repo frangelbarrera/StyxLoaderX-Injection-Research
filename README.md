@@ -398,3 +398,7 @@ or later** — see the [LICENSE](LICENSE) file for details.
 for guidelines on adding detection artifacts alongside new techniques,
 and `SECURITY.md` for responsible disclosure of security issues found
 in this framework.**
+
+## Research scope
+
+Use this project only in owned or explicitly authorized environments. It is research material, not a deployment recipe. Do not use it to evade EDR, target third parties, deliver payloads, or handle credentials. See [ETHICS.md](ETHICS.md) for scope and review boundaries.

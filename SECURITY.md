@@ -132,3 +132,7 @@ them — they will be rejected.
 - Maintainer: Frangel Raúl Crespo Barrera
 - Email: `201400231+frangelbarrera@users.noreply.github.com`
 - GitHub: [frangelbarrera](https://github.com/frangelbarrera)
+
+## Safe handling
+
+Do not submit credentials, payloads, shellcode, or operational injection artifacts in issues or pull requests. Changes involving injection, syscalls, obfuscation, or process manipulation require manual review and isolated testing; they must not be activated as functional tests in shared CI.
